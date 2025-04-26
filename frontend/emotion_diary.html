@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiverMind - Emotion Diary</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .diary-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .diary-entry {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .diary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .diary-timestamp {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .ecosystem-status {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .status-item {
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-value {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #343a40;
+        }
+
+        .biological-indicators {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #e8f5e9;
+        }
+
+        .indicator-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .indicator-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 4px;
+        }
+
+        .indicator-icon {
+            margin-right: 0.5rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .indicator-good { background-color: #4caf50; }
+        .indicator-warning { background-color: #ff9800; }
+        .indicator-bad { background-color: #f44336; }
+
+        .refresh-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .refresh-button:hover {
+            background-color: #0056b3;
+        }
+
+        .emotion-indicator {
+            font-size: 1.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .emotion-indicator.happy {
+            background-color: #98FB98;
+            color: #006400;
+            border: 2px solid #006400;
+        }
+
+        .emotion-indicator.sad {
+            background-color: #B0E0E6;
+            color: #00008B;
+            border: 2px solid #00008B;
+        }
+
+        .emotion-indicator.angry {
+            background-color: #FFB6C1;
+            color: #8B0000;
+            border: 2px solid #8B0000;
+        }
+
+        .emotion-indicator.excited {
+            background-color: #FFE4B5;
+            color: #8B4513;
+            border: 2px solid #8B4513;
+        }
+
+        .emotion-indicator.calm {
+            background-color: #E6E6FA;
+            color: #4B0082;
+            border: 2px solid #4B0082;
+        }
+
+        .emotion-indicator.neutral {
+            background-color: #F5F5F5;
+            color: #696969;
+            border: 2px solid #696969;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo">RiverMind</a>
+            <div class="nav-links">
+                <a href="monitor.html">Monitor</a>
+                <a href="emotion_diary.html" class="active">Emotion Diary</a>
+                <a href="drowning.html">Drowning Detection</a>
+                <a href="climate.html">Climate</a>
+                <a href="live_details.html">Live Details</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="diary-container">
+            <h1>River's Emotion Diary</h1>
+            <button id="refreshButton" class="refresh-button">Refresh Entry</button>
+
+            <div class="diary-entry">
+                <div class="diary-header">
+                    <div class="emotion-indicator" id="emotionIndicator">River is feeling: Loading...</div>
+                    <div class="diary-timestamp" id="timestamp"></div>
+                </div>
+
+                <div class="ecosystem-status">
+                    <h2>Ecosystem Health Indicators</h2>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <div class="status-label">Temperature</div>
+                            <div class="status-value" id="temperature">--</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">pH Level</div>
+                            <div class="status-value" id="phLevel">--</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">Flow Rate</div>
+                            <div class="status-value" id="flowRate">--</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">Dissolved Oxygen</div>
+                            <div class="status-value" id="dissolvedOxygen">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="biological-indicators">
+                    <h2>Biological Assessment</h2>
+                    <div class="indicator-list" id="bioIndicators">
+                        <!-- Indicators will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 RiverMind. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8001';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDiaryEntry();
+            document.getElementById('refreshButton').addEventListener('click', fetchDiaryEntry);
+        });
+
+        async function fetchDiaryEntry() {
+            // Show loading state
+            const emotionIndicator = document.getElementById('emotionIndicator');
+            const bioIndicators = document.getElementById('bioIndicators');
+            emotionIndicator.textContent = 'River is feeling: Loading...';
+            emotionIndicator.className = 'emotion-indicator';
+            bioIndicators.innerHTML = '<div style="text-align: center; padding: 1rem;">Loading biological assessment...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/emotion`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch river emotion data');
+                }
+                
+                const data = await response.json();
+
+                // Update emotion indicator
+                emotionIndicator.textContent = `River is feeling: ${data.emotion}`;
+                emotionIndicator.className = `emotion-indicator ${data.emotion}`;
+
+                // Update timestamp
+                document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+                // Update ecosystem status
+                document.getElementById('temperature').textContent = `${data.temperature.toFixed(1)}°C`;
+                document.getElementById('phLevel').textContent = `${data.ph.toFixed(1)} pH`;
+                document.getElementById('flowRate').textContent = `${data.flow.toFixed(2)} m³/s`;
+                
+                // Calculate dissolved oxygen based on temperature (simplified model)
+                const dissolvedOxygen = (14.6 * Math.exp(-0.02 * data.temperature)).toFixed(1);
+                document.getElementById('dissolvedOxygen').textContent = `${dissolvedOxygen} mg/L`;
+
+                // Update biological indicators
+                updateBiologicalIndicators(data);
+
+            } catch (error) {
+                console.error('Error fetching diary entry:', error);
+                emotionIndicator.textContent = 'Unable to determine river emotion';
+                emotionIndicator.className = 'emotion-indicator neutral';
+                bioIndicators.innerHTML = `
+                    <div style="color: #721c24; background-color: #f8d7da; padding: 1rem; border-radius: 4px;">
+                        Failed to load biological assessment. Please try refreshing.
+                    </div>
+                `;
+                
+                // Show error state in metrics
+                document.getElementById('temperature').textContent = '--';
+                document.getElementById('phLevel').textContent = '--';
+                document.getElementById('flowRate').textContent = '--';
+                document.getElementById('dissolvedOxygen').textContent = '--';
+            }
+        }
+
+        function updateBiologicalIndicators(data) {
+            const bioIndicators = document.getElementById('bioIndicators');
+            bioIndicators.innerHTML = '';
+
+            // Define biological indicators based on river parameters
+            const indicators = [
+                {
+                    name: 'Macroinvertebrate Diversity',
+                    status: data.ph >= 6.5 && data.ph <= 8.5 ? 'good' : 'warning',
+                    description: `${data.ph >= 6.5 && data.ph <= 8.5 ? 'Optimal' : 'Suboptimal'} conditions for aquatic insects and crustaceans`
+                },
+                {
+                    name: 'Algal Growth',
+                    status: data.temperature < 30 ? 'good' : 'warning',
+                    description: `${data.temperature < 30 ? 'Controlled' : 'Elevated'} algal proliferation`
+                },
+                {
+                    name: 'Fish Population',
+                    status: getDissolvesOxygenStatus(data.temperature),
+                    description: `Oxygen levels ${getDissolvesOxygenStatus(data.temperature) === 'good' ? 'support' : 'may stress'} fish populations`
+                },
+                {
+                    name: 'Riparian Vegetation',
+                    status: data.flow > 0.5 && data.flow < 10 ? 'good' : 'warning',
+                    description: `${data.flow > 0.5 && data.flow < 10 ? 'Healthy' : 'Stressed'} bank vegetation conditions`
+                }
+            ];
+
+            indicators.forEach(indicator => {
+                const item = document.createElement('div');
+                item.className = 'indicator-item';
+                item.innerHTML = `
+                    <div class="indicator-icon indicator-${indicator.status}"></div>
+                    <div>
+                        <strong>${indicator.name}</strong>
+                        <div>${indicator.description}</div>
+                    </div>
+                `;
+                bioIndicators.appendChild(item);
+            });
+        }
+
+        function getDissolvesOxygenStatus(temperature) {
+            const do_level = 14.6 * Math.exp(-0.02 * temperature);
+            if (do_level >= 7) return 'good';
+            if (do_level >= 5) return 'warning';
+            return 'bad';
+        }
+
+        // Add auto-refresh every 30 seconds
+        setInterval(fetchDiaryEntry, 30000);
+    </script>
+</body>
+</html> 

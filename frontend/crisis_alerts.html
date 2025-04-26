@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiverMind - Crisis Alerts</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .alerts-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .alert-form {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .alert-history {
+            margin-top: 2rem;
+        }
+        
+        .alert-item {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .alert-high {
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .alert-medium {
+            border-left: 4px solid #f39c12;
+        }
+        
+        .alert-low {
+            border-left: 4px solid #27ae60;
+        }
+        
+        .alert-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">RiverMind</div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="monitor.html">Monitor</a></li>
+                <li><a href="emotion_diary.html">Emotion Diary</a></li>
+                <li><a href="suggestions.html">Suggestions</a></li>
+                <li><a href="climate.html">Climate</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="alerts-container">
+            <h1>Crisis Alerts</h1>
+            <p>Send emergency notifications and track alert history</p>
+            
+            <div class="alert-form">
+                <form id="alert-form">
+                    <div class="form-group">
+                        <label for="alert-type">Alert Type</label>
+                        <select id="alert-type" required>
+                            <option value="sms">SMS Alert</option>
+                            <option value="email">Email Alert</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="recipient">Recipient</label>
+                        <input type="text" id="recipient" required 
+                               placeholder="Phone number or email address">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" required 
+                                  placeholder="Enter your emergency message..."></textarea>
+                    </div>
+                    
+                    <button type="submit">Send Alert</button>
+                </form>
+            </div>
+            
+            <div class="alert-history">
+                <h2>Alert History</h2>
+                <div id="history-container">
+                    <!-- Alert history will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 RiverMind. All rights reserved.</p>
+    </footer>
+
+    <script src="assets/js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('alert-form');
+            const historyContainer = document.getElementById('history-container');
+            
+            // Load alert history from localStorage
+            loadAlertHistory();
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const alertType = document.getElementById('alert-type').value;
+                const recipient = document.getElementById('recipient').value;
+                const message = document.getElementById('message').value;
+                
+                try {
+                    const result = await sendAlert(alertType, message, recipient);
+                    if (result.status === 'success') {
+                        saveToHistory(alertType, recipient, message);
+                        alert('Alert sent successfully!');
+                        form.reset();
+                    } else {
+                        throw new Error(result.error || 'Failed to send alert');
+                    }
+                } catch (error) {
+                    console.error('Error sending alert:', error);
+                    alert('Error sending alert. Please try again.');
+                }
+            });
+            
+            function saveToHistory(alertType, recipient, message) {
+                const history = JSON.parse(localStorage.getItem('alertHistory') || '[]');
+                const newEntry = {
+                    type: alertType,
+                    recipient,
+                    message,
+                    timestamp: new Date().toISOString()
+                };
+                
+                history.unshift(newEntry);
+                localStorage.setItem('alertHistory', JSON.stringify(history));
+                loadAlertHistory();
+            }
+            
+            function loadAlertHistory() {
+                const history = JSON.parse(localStorage.getItem('alertHistory') || '[]');
+                historyContainer.innerHTML = '';
+                
+                history.forEach(entry => {
+                    const item = document.createElement('div');
+                    item.className = `alert-item alert-${entry.type === 'sms' ? 'high' : 'medium'}`;
+                    
+                    item.innerHTML = `
+                        <h3>${entry.type.toUpperCase()} Alert</h3>
+                        <p><strong>To:</strong> ${entry.recipient}</p>
+                        <p><strong>Message:</strong> ${entry.message}</p>
+                        <p class="alert-time">${new Date(entry.timestamp).toLocaleString()}</p>
+                    `;
+                    
+                    historyContainer.appendChild(item);
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
