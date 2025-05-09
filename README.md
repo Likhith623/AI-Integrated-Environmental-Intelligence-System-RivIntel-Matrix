@@ -1,14 +1,21 @@
 # RiverMind
 
-RiverMind is a comprehensive river monitoring and safety system that combines real-time video analysis, emotion tracking, and climate data visualization to promote river safety and conservation.
+RiverMind is an intelligent river monitoring and conservation system that blends real-time video surveillance, emotional AI, and climate visualization to safeguard lives and ecosystems. It detects emergencies, tracks emotional experiences, and empowers proactive environmental action with intelligent alerts and data-driven insights.
 
 ## Features
+ Live Video Monitoring: Real-time drowning detection using advanced computer vision techniques.
 
-- **Live Video Monitoring**: Real-time drowning detection using computer vision
-- **Emotion Diary**: Track and analyze emotions related to river experiences
-- **Climate Impact**: Visualize river levels and climate data
-- **Safety Suggestions**: Get personalized safety tips and conservation advice
+Emotion Diary: Analyze and archive emotional responses to river environments for behavioral insights and environmental empathy.
 
+Climate Impact Visualization: Track river levels, temperature shifts, and other climate metrics through dynamic visual dashboards.
+
+Smart Safety Suggestions: Get personalized conservation tips and river safety guidance based on current conditions.
+
+Real-Time Alerts: Immediate notifications via Twilio for critical events like drowning detection or environmental hazards.
+
+Actionable Diary Logs: Review emotional and environmental logs to take informed and compassionate action toward river care.
+
+Eco-Awareness Tools: Interactive modules that suggest sustainable practices and highlight climate impact trends.
 ## Installation
 
 1. Clone the repository:
