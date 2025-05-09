@@ -1,4 +1,4 @@
-# RiverMind
+# Riv-Intel Matrix
 
 RiverMind is an intelligent river monitoring and conservation system that blends real-time video surveillance, emotional AI, and climate visualization to safeguard lives and ecosystems. It detects emergencies, tracks emotional experiences, and empowers proactive environmental action with intelligent alerts and data-driven insights.
 
