@@ -81,10 +81,11 @@ rivermind/
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branc
 3. Commit your changes
 4. Push to the branch
-5. Create a Pull Request
+5. 
+6. Create a Pull Request
 
 ## License
 
