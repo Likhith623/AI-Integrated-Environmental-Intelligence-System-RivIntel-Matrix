@@ -221,19 +221,23 @@
     <script src="https://cdn.jsdelivr.net/npm/gauge.js"></script>
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="logo">RiverMind</div>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="monitor.html">Monitor</a></li>
-                <li><a href="emotion_diary.html">River's Diary</a></li>
-                <li><a href="suggestions.html">Suggestions</a></li>
-                <li><a href="climate.html">Climate</a></li>
-                <li><a href="dashboard.html">Dashboard</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div class="waves"></div>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo">RiverMind</a>
+            <button class="menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="monitor.html">Monitor</a>
+                <a href="drowning.html">Drowning Detection</a>
+                <a href="climate.html">Climate</a>
+                <a href="dashboard.html" class="active">Dashboard</a>
+                <a href="live_details.html">Live Details</a>
+            </div>
+        </div>
+    </nav>
 
     <main>
         <div class="dashboard-container">

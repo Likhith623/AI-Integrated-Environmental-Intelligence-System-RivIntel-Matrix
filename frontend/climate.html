@@ -52,15 +52,15 @@
             backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-radius: 15px;
-            padding: 2rem;
+            padding: 1.5rem;
             box-shadow: 0 8px 32px var(--glass-shadow);
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
         }
         
         .chart-container {
             position: relative;
             height: 300px;
-            margin-top: 1rem;
+            margin: 0.5rem 0 1rem;
         }
         
         .impact-grid {
@@ -296,6 +296,35 @@
             font-size: 0.9em;
             color: #666;
         }
+        
+        /* Loading indicator for impact values */
+        .loading-data {
+            position: relative;
+            animation: pulse-opacity 1.5s infinite ease-in-out;
+        }
+        
+        .loading-data::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), transparent);
+            animation: loading-bar 2s infinite ease-in-out;
+        }
+        
+        @keyframes pulse-opacity {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        @keyframes loading-bar {
+            0% { width: 0; left: 0; }
+            50% { width: 100%; left: 0; }
+            100% { width: 0; left: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -303,11 +332,14 @@
     <nav class="navbar">
         <div class="nav-content">
             <a href="index.html" class="logo">RiverMind</a>
+            <button class="menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="nav-links">
+                <a href="index.html">Home</a>
                 <a href="monitor.html">Monitor</a>
                 <a href="drowning.html">Drowning Detection</a>
                 <a href="climate.html" class="active">Climate</a>
-                <a href="#" onclick="scrollToAlerts()">Alerts & Awareness</a>
             </div>
         </div>
     </nav>
@@ -460,8 +492,14 @@
 
     <script>
         const API_BASE_URL = window.location.origin;
+        // Add client-side caching
+        let cachedClimateData = null;
+        let lastFetchTimestamp = 0;
+        const CACHE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
         document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM loaded - initializing");
+            
             const emotionIndicator = document.getElementById('emotionIndicator');
             const climateGrid = document.getElementById('climateGrid');
             let currentEmotion = '';
@@ -631,64 +669,258 @@
             // Initialize charts
             charts = initializeCharts();
 
+            // Show dummy data immediately on page load
+            console.log("Displaying initial dummy data");
+            const initialData = {
+                temperature: 24.7,
+                ph: 7.2,
+                flow_rate: 2.5,
+                water_level: 2.3,
+                ecosystem_health: 85,
+                emotion: 'calm'
+            };
+            
+            // Update values directly
+            document.getElementById('tempChange').textContent = initialData.temperature + '°C';
+            document.getElementById('waterLevel').textContent = initialData.water_level + 'm';
+            document.getElementById('flowChange').textContent = initialData.flow_rate + 'm³/s';
+            document.getElementById('phLevel').textContent = initialData.ph;
+            document.getElementById('ecoHealth').textContent = initialData.ecosystem_health + '%';
+            
+            // Set emotion
+            emotionIndicator.textContent = `River is feeling: ${initialData.emotion.charAt(0).toUpperCase() + initialData.emotion.slice(1)}`;
+            emotionIndicator.className = `emotion-indicator ${initialData.emotion.toLowerCase()}`;
+            
+            // Set trends
+            const trendElements = document.querySelectorAll('.impact-trend');
+            trendElements.forEach(element => {
+                element.innerHTML = `
+                    <span class="trend-indicator stable">
+                        • Stable
+                    </span>
+                `;
+            });
+            
+            // Now call full dummy data system
+            displayDummyData();
+            
+            // Then fetch real data
+            setTimeout(fetchClimateData, 500);
+
             async function fetchClimateData() {
-                // Set initial data immediately
-                const initialData = {
+                // No need to call displayDummyData() here again since we're already showing dummy data
+                
+                // Use cached data if available and not expired
+                const now = Date.now();
+                if (cachedClimateData && (now - lastFetchTimestamp < CACHE_TIMEOUT)) {
+                    console.log("Using cached climate data");
+                    updateEmotionState(cachedClimateData.emotion || 'calm');
+                    updateMetricsDisplay(cachedClimateData);
+                    updateCharts(cachedClimateData);
+                    return cachedClimateData;
+                }
+
+                try {
+                    // Use Promise.race to set a timeout on the fetch
+                    const fetchPromise = fetch(`${API_BASE_URL}/api/climate_data`);
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Fetch timeout')), 8000)
+                    );
+                    
+                    const response = await Promise.race([fetchPromise, timeoutPromise]);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const apiData = await response.json();
+                    
+                    // If we have historical climate data from the new API
+                    if (apiData && apiData.historical) {
+                        // Convert the optimized API format
+                        const climateData = {
+                            temperature: apiData.current.temperature,
+                            ph: 7.2, // Use default if not in climate data
+                            flow_rate: apiData.current.water_level / 40, // Approximate conversion
+                            water_level: apiData.current.water_level / 100, // Scale to meters
+                            ecosystem_health: 85, // Default
+                            emotion: determineRiverEmotion({
+                                temperature: apiData.current.temperature,
+                                ph: 7.2,
+                                flow_rate: apiData.current.water_level / 40
+                            }),
+                            temperature_history: apiData.historical.dates.map((date, i) => ({
+                                timestamp: new Date().toISOString(), // Simplified timestamp
+                                value: apiData.historical.temperature[i]
+                            })),
+                            water_level_history: apiData.historical.dates.map((date, i) => ({
+                                timestamp: new Date().toISOString(),
+                                value: apiData.historical.water_level[i] / 100 // Scale to meters
+                            })),
+                            flow_rate_history: apiData.historical.dates.map((date, i) => ({
+                                timestamp: new Date().toISOString(),
+                                value: apiData.historical.water_level[i] / 40 // Approximate
+                            }))
+                        };
+                        
+                        // Update with real climate data
+                        updateEmotionState(climateData.emotion);
+                        updateMetricsDisplay(climateData);
+                        updateCharts(climateData);
+                        
+                        // Remove loading indicators
+                        removeLoadingIndicators();
+                        
+                        // Cache the data
+                        cachedClimateData = climateData;
+                        lastFetchTimestamp = now;
+                        
+                        checkAndGenerateAlerts(climateData);
+                        return climateData;
+                    } else {
+                        // Fall back to emotion API data
+                        await fetchEmotionData();
+                    }
+                } catch (error) {
+                    console.error('Error fetching climate data:', error);
+                    // Try the emotion API as fallback
+                    await fetchEmotionData();
+                }
+                
+                return cachedClimateData || generateDummyData();
+            }
+            
+            // Function to immediately display dummy data
+            function displayDummyData() {
+                console.log("Displaying dummy data immediately");
+                
+                // Hard-coded dummy data for instant display
+                const dummyData = {
                     temperature: 24.7,
                     ph: 7.2,
                     flow_rate: 2.5,
                     water_level: 2.3,
                     ecosystem_health: 85,
-                    emotion: 'calm'
+                    emotion: 'calm',
+                    temperature_history: [],
+                    water_level_history: [],
+                    flow_rate_history: [],
+                    ecosystem_history: []
                 };
                 
-                // Update UI immediately with initial data
-                updateEmotionState(initialData.emotion);
-                updateMetricsDisplay(initialData);
-
+                // Generate sample data for histories
+                const sampleData = generateSampleData();
+                dummyData.temperature_history = sampleData.temperature_history;
+                dummyData.water_level_history = sampleData.water_level_history;
+                dummyData.flow_rate_history = sampleData.flow_rate_history;
+                dummyData.ecosystem_history = sampleData.ecosystem_history;
+                
+                // Display the dummy data immediately
+                updateEmotionState(dummyData.emotion);
+                updateMetricsDisplay(dummyData);
+                updateCharts(dummyData);
+                updatePredictionChart(dummyData);
+                
+                // Make trends appear immediately
+                updateTrends(dummyData);
+                
+                // Set a loading indicator to show that real data is being fetched
+                const loadingElements = document.querySelectorAll('.impact-value');
+                loadingElements.forEach(el => {
+                    el.classList.add('loading-data');
+                });
+                
+                return dummyData;
+            }
+            
+            // Generate dummy data for initial display
+            function generateDummyData() {
+                const sampleData = generateSampleData();
+                
+                return {
+                    temperature: 24.7,
+                    ph: 7.2,
+                    flow_rate: 2.5,
+                    water_level: 2.3,
+                    ecosystem_health: 85,
+                    emotion: 'calm',
+                    temperature_history: sampleData.temperature_history,
+                    water_level_history: sampleData.water_level_history,
+                    flow_rate_history: sampleData.flow_rate_history,
+                    ecosystem_history: sampleData.ecosystem_history
+                };
+            }
+            
+            // Helper function to fetch emotion data as fallback
+            async function fetchEmotionData() {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/api/emotion`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                    const emotionResponse = await fetch(`${API_BASE_URL}/api/emotion`);
+                    if (emotionResponse.ok) {
+                        const data = await emotionResponse.json();
+                        
+                        const finalData = {
+                            temperature: data.temperature || (cachedClimateData?.temperature || 24.7),
+                            ph: data.ph || (cachedClimateData?.ph || 7.2),
+                            flow_rate: data.flow_rate || (cachedClimateData?.flow_rate || 2.5),
+                            water_level: data.water_level || (cachedClimateData?.water_level || 2.3),
+                            ecosystem_health: data.ecosystem_health || (cachedClimateData?.ecosystem_health || 85),
+                            emotion: data.emotion || (cachedClimateData?.emotion || 'calm'),
+                            temperature_history: data.temperature_history || (cachedClimateData?.temperature_history || generateSampleData().temperature_history),
+                            water_level_history: data.water_level_history || (cachedClimateData?.water_level_history || generateSampleData().water_level_history),
+                            flow_rate_history: data.flow_rate_history || (cachedClimateData?.flow_rate_history || generateSampleData().flow_rate_history),
+                            ecosystem_history: data.ecosystem_history || (cachedClimateData?.ecosystem_history || generateSampleData().ecosystem_history)
+                        };
+        
+                        // Only update if we got real data that's different
+                        if (data.temperature || data.ph || data.flow_rate) {
+                            updateEmotionState(finalData.emotion);
+                            updateMetricsDisplay(finalData);
+                            updateCharts(finalData);
+                            
+                            // Remove loading indicators
+                            removeLoadingIndicators();
+                            
+                            // Cache this data too
+                            cachedClimateData = finalData;
+                            lastFetchTimestamp = Date.now();
+                        }
+                        
+                        checkAndGenerateAlerts(finalData);
+                        return finalData;
                     }
-                    const data = await response.json();
-                    
-                    // Generate sample data for history
-                    const sampleData = generateSampleData();
-                    const finalData = {
-                        temperature: data.temperature || initialData.temperature,
-                        ph: data.ph || initialData.ph,
-                        flow_rate: data.flow_rate || initialData.flow_rate,
-                        water_level: data.water_level || initialData.water_level,
-                        ecosystem_health: data.ecosystem_health || initialData.ecosystem_health,
-                        emotion: data.emotion || initialData.emotion,
-                        temperature_history: data.temperature_history || sampleData.temperature_history,
-                        water_level_history: data.water_level_history || sampleData.water_level_history,
-                        flow_rate_history: sampleData.flow_rate_history || [],
-                        ecosystem_history: sampleData.ecosystem_history || []
-                    };
-
-                    // Update UI with real or fallback data
-                    updateEmotionState(finalData.emotion);
-                    updateMetricsDisplay(finalData);
-                    updateCharts(finalData);
-                    updatePredictionChart(finalData);
-                    checkAndGenerateAlerts(finalData);
-                } catch (error) {
-                    console.error('Error fetching climate data:', error);
-                    // Already showing initial data, no need to show error
+                } catch (err) {
+                    console.error('Error fetching emotion data:', err);
+                    // Already showing dummy data
                 }
+                return cachedClimateData || generateDummyData();
+            }
+
+            // Function to determine river emotion
+            function determineRiverEmotion(data) {
+                if (!data) return 'calm';
+                
+                const temp = data.temperature || 24.7;
+                const flow = data.flow_rate || 2.5;
+                const ph = data.ph || 7.2;
+                
+                if (temp > 30 && flow > 4) return 'angry';
+                if (ph < 6 || ph > 9) return 'sad';
+                if (flow > 5 && 25 <= temp && temp <= 35) return 'excited';
+                if (temp < 15 && flow < 1) return 'calm';
+                if (20 <= temp && temp <= 28 && 6.5 <= ph && ph <= 8.5) return 'happy';
+                
+                return 'neutral';
             }
 
             function updateMetricsDisplay(data) {
-                // Update metric values immediately
-                document.getElementById('tempChange').textContent = data.temperature?.toFixed(1) || '--';
-                document.getElementById('waterLevel').textContent = data.water_level?.toFixed(1) || '--';
-                document.getElementById('flowChange').textContent = data.flow_rate?.toFixed(1) || '--';
-                document.getElementById('phLevel').textContent = data.ph?.toFixed(1) || '--';
-                document.getElementById('ecoHealth').textContent = data.ecosystem_health?.toFixed(0) || '--';
+                // Update metric values immediately with units
+                document.getElementById('tempChange').textContent = (data.temperature ? data.temperature.toFixed(1) + '°C' : '--°C');
+                document.getElementById('waterLevel').textContent = (data.water_level ? data.water_level.toFixed(1) + 'm' : '--m');
+                document.getElementById('flowChange').textContent = (data.flow_rate ? data.flow_rate.toFixed(1) + 'm³/s' : '--m³/s');
+                document.getElementById('phLevel').textContent = (data.ph ? data.ph.toFixed(1) : '--');
+                document.getElementById('ecoHealth').textContent = (data.ecosystem_health ? data.ecosystem_health.toFixed(0) + '%' : '--%');
 
-                // Quick trend update
+                // Set initial trend displays immediately to avoid "Analyzing trend..." message
                 const trendElements = {
                     temp: document.getElementById('tempTrend'),
                     water: document.getElementById('waterTrend'),
@@ -697,7 +929,7 @@
                     eco: document.getElementById('ecoTrend')
                 };
 
-                // Set initial trend display
+                // Set initial trend display - show stable immediately rather than "Analyzing trend..."
                 Object.values(trendElements).forEach(element => {
                     element.innerHTML = `
                         <span class="trend-indicator stable">
@@ -705,6 +937,14 @@
                         </span>
                     `;
                 });
+                
+                // Generate and update trends immediately if we have history data
+                if (data.temperature_history || data.water_level_history || data.flow_rate_history) {
+                    updateTrends(data);
+                }
+                
+                // Remove loading indicators
+                removeLoadingIndicators();
             }
 
             function generateSampleData() {
@@ -761,6 +1001,8 @@
             }
 
             function updateTrends(data) {
+                if (!data) return;
+                
                 const trendElements = {
                     temp: document.getElementById('tempTrend'),
                     water: document.getElementById('waterTrend'),
@@ -769,54 +1011,30 @@
                     eco: document.getElementById('ecoTrend')
                 };
 
-                // Show loading state
-                Object.values(trendElements).forEach(element => {
-                    element.innerHTML = '<span class="loading-trend">Analyzing...</span>';
-                });
-
-                // Immediate calculation for initial trends
-                const quickTrends = {
-                    temp: calculateQuickTrend(data.temperature_history, 'temperature'),
-                    water: calculateQuickTrend(data.water_level_history, 'water level'),
-                    flow: calculateQuickTrend(data.flow_rate_history, 'flow rate'),
-                    ph: calculateQuickTrend(data.ph_history, 'pH'),
-                    eco: calculateQuickTrend(data.ecosystem_history, 'ecosystem')
+                // Calculate all trends at once with simplified calculation
+                const trends = {
+                    temp: getQuickTrend(data.temperature_history, 'temperature'),
+                    water: getQuickTrend(data.water_level_history, 'water level'),
+                    flow: getQuickTrend(data.flow_rate_history, 'flow rate'),
+                    ph: getQuickTrend(data.ph_history, 'pH'),
+                    eco: getQuickTrend(data.ecosystem_history, 'ecosystem')
                 };
 
-                // Update with quick initial analysis
-                Object.entries(quickTrends).forEach(([key, trend]) => {
+                // Update all trend elements at once
+                Object.entries(trends).forEach(([key, trend]) => {
                     const element = trendElements[key];
+                    if (!element) return;
+                    
                     element.innerHTML = `
                         <span class="trend-indicator ${trend.direction}">
                             ${trend.icon} ${trend.text}
                         </span>
                     `;
                 });
-
-                // Detailed analysis with short delay
-                setTimeout(() => {
-                    const detailedTrends = {
-                        temp: calculateTrendIndicator(data.temperature_history, 'temperature'),
-                        water: calculateTrendIndicator(data.water_level_history, 'water level'),
-                        flow: calculateTrendIndicator(data.flow_rate_history, 'flow rate'),
-                        ph: calculateTrendIndicator(data.ph_history, 'pH'),
-                        eco: calculateTrendIndicator(data.ecosystem_history, 'ecosystem')
-                    };
-
-                    // Update with full analysis
-                    Object.entries(detailedTrends).forEach(([key, trend]) => {
-                        const element = trendElements[key];
-                        element.innerHTML = `
-                            <span class="trend-indicator ${trend.direction}">
-                                ${trend.icon} ${trend.text}
-                            </span>
-                            <span class="trend-details">${trend.details}</span>
-                        `;
-                    });
-                }, 500); // Reduced to 500ms for detailed analysis
             }
 
-            function calculateQuickTrend(history, type) {
+            // Ultra-fast trend calculation for immediate display
+            function getQuickTrend(history, type) {
                 if (!history || history.length < 2) {
                     return {
                         direction: 'stable',
@@ -824,18 +1042,29 @@
                         text: 'Stable'
                     };
                 }
-
-                const latest = history[history.length - 1].value;
-                const previous = history[history.length - 2].value;
-                const threshold = getTrendThreshold(type) / 2;
-
-                if (Math.abs(latest - previous) < threshold) {
+                
+                // Just compare the most recent two points for instant trend
+                const latest = history[history.length - 1]?.value;
+                const previous = history[history.length - 2]?.value;
+                
+                if (!latest || !previous) {
                     return {
                         direction: 'stable',
                         icon: '•',
                         text: 'Stable'
                     };
-                } else if (latest > previous) {
+                }
+                
+                const change = latest - previous;
+                const threshold = getTrendThreshold(type) * 0.5; // Lower threshold for quicker trend detection
+                
+                if (Math.abs(change) < threshold) {
+                    return {
+                        direction: 'stable',
+                        icon: '•',
+                        text: 'Stable'
+                    };
+                } else if (change > 0) {
                     return {
                         direction: 'rising',
                         icon: '↑',
@@ -851,46 +1080,8 @@
             }
 
             function calculateTrendIndicator(history, type) {
-                if (!history || history.length < 2) {
-                    return {
-                        direction: 'stable',
-                        icon: '•',
-                        text: 'Stable',
-                        details: 'Insufficient data for trend analysis'
-                    };
-                }
-
-                const recentValues = history.slice(-6); // Look at last 6 data points
-                const changes = [];
-                for (let i = 1; i < recentValues.length; i++) {
-                    changes.push(recentValues[i].value - recentValues[i-1].value);
-                }
-
-                const averageChange = changes.reduce((a, b) => a + b, 0) / changes.length;
-                const threshold = getTrendThreshold(type);
-
-                if (Math.abs(averageChange) < threshold) {
-                    return {
-                        direction: 'stable',
-                        icon: '•',
-                        text: 'Stable',
-                        details: `${type.charAt(0).toUpperCase() + type.slice(1)} is maintaining steady levels`
-                    };
-                } else if (averageChange > 0) {
-                    return {
-                        direction: 'rising',
-                        icon: '↑',
-                        text: 'Rising',
-                        details: `${type.charAt(0).toUpperCase() + type.slice(1)} shows an increasing trend`
-                    };
-                } else {
-                    return {
-                        direction: 'falling',
-                        icon: '↓',
-                        text: 'Falling',
-                        details: `${type.charAt(0).toUpperCase() + type.slice(1)} shows a decreasing trend`
-                    };
-                }
+                // Use getQuickTrend for immediate response
+                return getQuickTrend(history, type);
             }
 
             function getTrendThreshold(type) {
@@ -997,11 +1188,20 @@
 
             function updateChartData(chart, data, unit) {
                 if (!chart || !data) return;
-
-                chart.data.labels = data.map(d => new Date(d.timestamp).toLocaleTimeString());
-                chart.data.datasets[0].data = data.map(d => d.value);
-                chart.options.scales.y.title = { display: true, text: unit };
-                chart.update();
+                
+                // Optimize chart updates by limiting data points
+                const maxDataPoints = 24; // Limit to 24 data points for better performance
+                const limitedData = data.slice(-maxDataPoints);
+                
+                chart.data.labels = limitedData.map(point => {
+                    const date = new Date(point.timestamp);
+                    return date.getHours() + ':00';
+                });
+                
+                chart.data.datasets[0].data = limitedData.map(point => point.value);
+                
+                // Use 'none' to disable animation for performance
+                chart.update('none');
             }
 
             function calculateScore(value, min, max) {
@@ -1010,38 +1210,44 @@
             }
 
             function updatePredictionChart(data) {
-                if (!charts?.prediction) return;
-
-                const range = document.getElementById('predictionRange').value;
-                const predictionData = generatePredictionData(data, range);
+                if (!charts || !charts.prediction) return;
                 
-                charts.prediction.data.labels = predictionData.labels;
-                charts.prediction.data.datasets[0].data = predictionData.historical;
-                charts.prediction.data.datasets[1].data = predictionData.predicted;
-                charts.prediction.update();
-            }
-
-            function generatePredictionData(data, range) {
-                const historical = data.temperature_history?.slice(-10) || [];
-                const predicted = [...(historical.map(h => h.value) || [])];
-                const trend = calculateTrend(predicted);
+                // Optimization: Only update this chart if we have new data
+                if (!data.temperature_history || !data.water_level_history) return;
                 
-                const points = range === 'week' ? 7 : range === 'month' ? 30 : 365;
-                for (let i = 0; i < points; i++) {
-                    predicted.push(predicted[predicted.length - 1] + trend);
+                const chart = charts.prediction;
+                
+                // Get history data for last 24 hours
+                const historyLabels = data.temperature_history.slice(-24).map(item => {
+                    const date = new Date(item.timestamp);
+                    return date.getHours() + ':00';
+                });
+                
+                // Historical data
+                const historyData = data.temperature_history.slice(-24).map(item => item.value);
+                
+                // Predict future values (simplified for performance)
+                const lastValue = historyData[historyData.length - 1] || 24.7;
+                const futureLabels = [];
+                const futureData = [];
+                
+                // Generate fewer future points for faster rendering
+                for (let i = 1; i <= 12; i++) {
+                    const hour = new Date().getHours() + i;
+                    futureLabels.push(`${hour % 24}:00`);
+                    
+                    // Simple prediction formula
+                    const predictedValue = lastValue + (Math.random() * 0.4 - 0.2) * i;
+                    futureData.push(predictedValue);
                 }
-
-                return {
-                    labels: Array(predicted.length).fill('').map((_, i) => `Day ${i + 1}`),
-                    historical: historical.map(h => h.value),
-                    predicted: predicted
-                };
-            }
-
-            function calculateTrend(data) {
-                if (!data || data.length < 2) return 0;
-                const diff = data[data.length - 1] - data[0];
-                return diff / (data.length - 1);
+                
+                // Update chart with both datasets
+                chart.data.labels = [...historyLabels, ...futureLabels];
+                chart.data.datasets[0].data = [...historyData, null, null, null, null, null, null, null, null, null, null, null, null];
+                chart.data.datasets[1].data = [null, null, null, null, null, null, null, null, null, null, null, null, ...futureData];
+                
+                // Update with animation disabled for better performance
+                chart.update('none');
             }
 
             function handleError(message) {
@@ -1268,6 +1474,14 @@
 
         // Auto-update alerts every 30 seconds
         setInterval(fetchClimateData, 30000);
+
+        // Function to remove loading indicators
+        function removeLoadingIndicators() {
+            const loadingElements = document.querySelectorAll('.impact-value');
+            loadingElements.forEach(el => {
+                el.classList.remove('loading-data');
+            });
+        }
     </script>
 </body>
 </html> 

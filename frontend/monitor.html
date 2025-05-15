@@ -196,23 +196,39 @@
         .indicator-warning { background-color: #ff9800; }
         .indicator-bad { background-color: #f44336; }
 
+        /* Upload Status Styles */
         #uploadStatus {
-            margin: 1rem 0;
-            padding: 1rem;
+            margin: 10px 0;
+            padding: 10px;
             border-radius: 4px;
+            font-size: 0.9rem;
             display: none;
+            transition: opacity 0.5s ease;
         }
 
-        #uploadStatus.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        #uploadStatus.info {
+            background-color: #cce5ff;
+            color: #004085;
         }
 
         #uploadStatus.success {
             background-color: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
+        }
+
+        #uploadStatus.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            width: 0%;
+            height: 12px;
+            background-color: #4CAF50;
+            border-radius: 6px;
+            transition: width 0.2s ease-in-out;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -221,11 +237,14 @@
     <nav class="navbar">
         <div class="nav-content">
             <a href="index.html" class="logo">RiverMind</a>
+            <button class="menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="nav-links">
+                <a href="index.html">Home</a>
                 <a href="monitor.html" class="active">Monitor</a>
                 <a href="drowning.html">Drowning Detection</a>
                 <a href="climate.html">Climate</a>
-                <a href="#" onclick="scrollToAlerts()">Alerts & Awareness</a>
             </div>
         </div>
     </nav>
@@ -512,36 +531,98 @@
             formData.append('video', file);
 
             showUploadStatus('Uploading and analyzing video...', 'info');
+            
+            // Create progress bar for upload
+            const uploadStatus = document.getElementById('uploadStatus');
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.style.width = '0%';
+            progressBar.style.height = '10px';
+            progressBar.style.backgroundColor = '#4CAF50';
+            progressBar.style.marginTop = '5px';
+            progressBar.style.borderRadius = '5px';
+            uploadStatus.appendChild(progressBar);
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/drowning`, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json'
-                    },
-                    body: formData
+                // Use XMLHttpRequest for progress tracking
+                const xhr = new XMLHttpRequest();
+                const progressPromise = new Promise((resolve, reject) => {
+                    xhr.open('POST', `${API_BASE_URL}/api/drowning`, true);
+                    xhr.setRequestHeader('Accept', 'application/json');
+                    
+                    // Track upload progress
+                    xhr.upload.onprogress = (event) => {
+                        if (event.lengthComputable) {
+                            const percentComplete = (event.loaded / event.total) * 100;
+                            progressBar.style.width = percentComplete + '%';
+                            uploadStatus.textContent = `Uploading: ${Math.round(percentComplete)}%`;
+                        }
+                    };
+                    
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                resolve(data);
+                            } catch (error) {
+                                reject(new Error('Invalid JSON response from server'));
+                            }
+                        } else {
+                            try {
+                                const errorData = JSON.parse(xhr.responseText);
+                                reject(new Error(errorData.error || 'Server error'));
+                            } catch (e) {
+                                reject(new Error(`Server error: ${xhr.status}`));
+                            }
+                        }
+                    };
+                    
+                    xhr.onerror = () => {
+                        reject(new Error('Network error occurred'));
+                    };
+                    
+                    xhr.ontimeout = () => {
+                        reject(new Error('Request timed out'));
+                    };
+                    
+                    xhr.send(formData);
                 });
-
-                let data;
-                try {
-                    data = await response.json();
-                } catch (error) {
-                    console.error('JSON parsing error:', error);
-                    throw new Error('Invalid response from server');
-                }
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to analyze video');
-                }
-
+                
+                // Show processing message
+                uploadStatus.textContent = 'Processing video...';
+                progressBar.style.width = '100%';
+                progressBar.style.backgroundColor = '#FFC107'; // Yellow for processing
+                
+                // Wait for response
+                const data = await progressPromise;
+                
                 document.getElementById('metricsGrid').style.display = 'grid';
                 document.getElementById('emotionIndicator').style.display = 'block';
 
+                // Update UI with results
                 updateMetricsAndEmotion(data);
                 showUploadStatus('Analysis complete!', 'success');
+                
+                // Remove progress bar
+                if (uploadStatus.contains(progressBar)) {
+                    uploadStatus.removeChild(progressBar);
+                }
             } catch (error) {
                 console.error('Error:', error);
+                
+                // Update progress bar to indicate error
+                if (uploadStatus.contains(progressBar)) {
+                    progressBar.style.backgroundColor = '#F44336'; // Red for error
+                }
+                
                 showUploadStatus(error.message || 'Failed to analyze video. Please try again.', 'error');
+                
+                // Remove progress bar after delay
+                setTimeout(() => {
+                    if (uploadStatus.contains(progressBar)) {
+                        uploadStatus.removeChild(progressBar);
+                    }
+                }, 3000);
             }
         }
 
@@ -664,8 +745,25 @@
             statusDiv.style.display = 'block';
 
             if (type === 'info') {
-                statusDiv.style.backgroundColor = '#cce5ff';
-                statusDiv.style.color = '#004085';
+                // For info messages, keep them visible
+            } else if (type === 'success') {
+                // Auto-hide success messages after 5 seconds
+                setTimeout(() => {
+                    statusDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (statusDiv.textContent === message) {
+                            statusDiv.style.display = 'none';
+                            statusDiv.style.opacity = '1';
+                        }
+                    }, 500);
+                }, 5000);
+            } else if (type === 'error') {
+                // Keep error messages visible until user takes action
+                statusDiv.style.cursor = 'pointer';
+                statusDiv.title = 'Click to dismiss';
+                statusDiv.onclick = () => {
+                    statusDiv.style.display = 'none';
+                };
             }
         }
     </script>

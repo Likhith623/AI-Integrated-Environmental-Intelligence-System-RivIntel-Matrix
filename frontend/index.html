@@ -6,17 +6,21 @@
     <title>RiverMind - Intelligent River Monitoring</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <div class="waves"></div>
     <nav class="navbar">
         <div class="nav-content">
             <a href="index.html" class="logo">RiverMind</a>
+            <button class="menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="nav-links">
+                <a href="index.html" class="active">Home</a>
                 <a href="monitor.html">Monitor</a>
-                <a href="emotion_diary.html">Emotion Diary</a>
                 <a href="drowning.html">Drowning Detection</a>
                 <a href="climate.html">Climate</a>
-                <a href="live_details.html">Live Details</a>
             </div>
         </div>
     </nav>
@@ -29,15 +33,15 @@
         </section>
 
         <section class="features">
-            <div class="feature-card">
+            <div class="feature-card" data-animate>
                 <h3>Emotion Detection</h3>
                 <p>Track and understand river-related emotions</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card" data-animate>
                 <h3>Drowning Prevention</h3>
                 <p>Real-time monitoring for potential incidents</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card" data-animate>
                 <h3>Climate Impact</h3>
                 <p>Visualize river health and future predictions</p>
             </div>

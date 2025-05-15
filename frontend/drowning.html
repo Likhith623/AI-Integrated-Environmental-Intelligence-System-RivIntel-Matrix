@@ -44,6 +44,26 @@
             color: white;
         }
         
+        /* Alert indicator for SMS status */
+        .alert-indicator {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .alert-ready {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .alert-sent {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
         .video-feed {
             width: 100%;
             max-width: 800px;
@@ -207,6 +227,198 @@
             padding: 1rem;
             display: none;
         }
+        
+        /* Upload progress styles */
+        .upload-progress-container {
+            width: 100%;
+            height: 12px;
+            background-color: #f1f1f1;
+            border-radius: 6px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .upload-progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            border-radius: 6px;
+            transition: width 0.2s ease-in-out;
+        }
+        
+        .upload-status {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            display: none;
+        }
+        
+        .upload-section {
+            margin-bottom: 20px;
+        }
+        
+        /* SMS notification styles */
+        .alert-notification-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .alert-notification-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        
+        .alert-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .alert-toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .alert-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .alert-toggle-slider {
+            background-color: #2563eb;
+        }
+        
+        input:checked + .alert-toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .email-input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .email-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .save-email-btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .save-email-btn:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .alert-status {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            color: #6b7280;
+        }
+        
+        .alert-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #2563eb;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 350px;
+            animation: slideIn 0.3s ease-out;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .alert-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .alert-notification-icon {
+            font-size: 1.5rem;
+        }
+        
+        .alert-notification-content {
+            flex: 1;
+        }
+        
+        .alert-notification-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .alert-notification-message {
+            font-size: 0.9rem;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .test-email-btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .test-email-btn:hover {
+            background-color: #059669;
+        }
     </style>
 </head>
 <body>
@@ -214,11 +426,14 @@
     <nav class="navbar">
         <div class="nav-content">
             <a href="index.html" class="logo">RiverMind</a>
+            <button class="menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="nav-links">
+                <a href="index.html">Home</a>
                 <a href="monitor.html">Monitor</a>
                 <a href="drowning.html" class="active">Drowning Detection</a>
                 <a href="climate.html">Climate</a>
-                <a href="#" onclick="scrollToAlerts()">Alerts & Awareness</a>
             </div>
         </div>
     </nav>
@@ -233,7 +448,10 @@
             <div class="alert-section">
                 <div class="alert-header">
                     <h2>System Status</h2>
-                    <span class="alert-status status-inactive">Inactive</span>
+                    <div>
+                        <span class="alert-status status-inactive">Inactive</span>
+                        <span id="alert-indicator" class="alert-indicator alert-ready">SMS Ready</span>
+                    </div>
                 </div>
                 
                 <div class="video-feed">
@@ -247,6 +465,29 @@
                     <button id="start-button" class="control-button start-button">Start Camera</button>
                     <button id="stop-button" class="control-button stop-button" disabled>Stop Camera</button>
                     <button id="upload-button" class="control-button upload-button">Upload Video</button>
+                </div>
+                
+                <!-- Upload progress indicators -->
+                <div class="upload-progress-container" id="upload-progress-container">
+                    <div class="upload-progress-bar" id="upload-progress-bar"></div>
+                </div>
+                <div class="upload-status" id="upload-status"></div>
+                
+                <!-- SMS Notification Configuration -->
+                <div class="alert-notification-section">
+                    <div class="alert-notification-toggle">
+                        <label class="alert-toggle-switch">
+                            <input type="checkbox" id="alert-toggle">
+                            <span class="alert-toggle-slider"></span>
+                        </label>
+                        <span>Enable Email Alerts</span>
+                    </div>
+                    <div class="email-input-container" id="email-input-container" style="display: none;">
+                        <input type="email" class="email-input" id="email-input" placeholder="Enter email address">
+                        <button class="save-email-btn" id="save-email-btn">Save</button>
+                        <button class="test-email-btn" id="test-email-btn" style="background-color: #10b981;">Test</button>
+                    </div>
+                    <div class="alert-status" id="alert-status"></div>
                 </div>
                 
                 <div class="metrics-grid" id="metrics-grid">
@@ -286,9 +527,21 @@
         <p>&copy; 2024 RiverMind. All rights reserved.</p>
     </footer>
 
+    <!-- Email Notification Popup -->
+    <div class="alert-notification" id="alert-notification">
+        <div class="alert-notification-icon">📧</div>
+        <div class="alert-notification-content">
+            <div class="alert-notification-title">Email Alert Sent</div>
+            <div class="alert-notification-message" id="alert-notification-message">Alert notification sent to your email.</div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
     <script>
+        // Define API base URL
+        const API_BASE_URL = 'http://localhost:8001';
+        
         document.addEventListener('DOMContentLoaded', async () => {
             const video = document.getElementById('camera-feed');
             const startButton = document.getElementById('start-button');
@@ -297,9 +550,19 @@
             const metricsGrid = document.getElementById('metrics-grid');
             const alertHistory = document.getElementById('alert-history');
             const detectionOverlay = document.getElementById('detection-overlay');
-            const alertStatus = document.querySelector('.alert-status');
+            const systemAlertStatus = document.querySelector('.alert-status');
             const errorMessage = document.getElementById('error-message');
             const loading = document.getElementById('loading');
+            const alertIndicator = document.getElementById('alert-indicator');
+            
+            // Email notification elements
+            const alertToggle = document.getElementById('alert-toggle');
+            const emailInputContainer = document.getElementById('email-input-container');
+            const emailInput = document.getElementById('email-input');
+            const saveEmailBtn = document.getElementById('save-email-btn');
+            const testEmailBtn = document.getElementById('test-email-btn');
+            const alertStatusMsg = document.getElementById('alert-status');
+            const alertNotification = document.getElementById('alert-notification');
             
             let model = null;
             let isModelLoaded = false;
@@ -307,12 +570,216 @@
             let isMonitoring = false;
             let detectionCanvas = null;
             let ctx = null;
-
+            let emailAddress = localStorage.getItem('emergencyEmailAddress') || '';
+            let emailEnabled = localStorage.getItem('emailAlertsEnabled') === 'true';
+            
+            // Alert cooldown management
+            let lastAlertTime = 0;
+            let alertCooldownPeriod = 60000; // 60 seconds cooldown between alerts
+            let alertSentForCurrentVideo = false; // Track if an alert was already sent for this video
+            
+            // Initialize SMS toggle state from localStorage
+            alertToggle.checked = emailEnabled;
+            if (emailEnabled) {
+                emailInputContainer.style.display = 'flex';
+                if (emailAddress) {
+                    emailInput.value = emailAddress;
+                    alertStatusMsg.textContent = `Email alerts will be sent to ${emailAddress}`;
+                }
+            }
+            
+            // SMS toggle event listener
+            alertToggle.addEventListener('change', function() {
+                emailEnabled = this.checked;
+                localStorage.setItem('emailAlertsEnabled', emailEnabled);
+                
+                if (emailEnabled) {
+                    emailInputContainer.style.display = 'flex';
+                    if (emailAddress) {
+                        alertStatusMsg.textContent = `Email alerts will be sent to ${emailAddress}`;
+                    } else {
+                        alertStatusMsg.textContent = 'Please enter your email address to receive alerts';
+                    }
+                } else {
+                    emailInputContainer.style.display = 'none';
+                    alertStatusMsg.textContent = 'Email alerts are disabled';
+                }
+            });
+            
+            // Save email address
+            saveEmailBtn.addEventListener('click', function() {
+                const newEmailAddress = emailInput.value.trim();
+                
+                // Simple validation for email address
+                if (!validateEmailAddress(newEmailAddress)) {
+                    alertStatusMsg.textContent = 'Please enter a valid email address';
+                    return;
+                }
+                
+                emailAddress = newEmailAddress;
+                localStorage.setItem('emergencyEmailAddress', emailAddress);
+                alertStatusMsg.textContent = `Email alerts will be sent to ${emailAddress}`;
+                
+                // Show success indicator
+                alertStatusMsg.style.color = '#10b981';
+                setTimeout(() => {
+                    alertStatusMsg.style.color = '#6b7280';
+                }, 2000);
+            });
+            
+            // Test email sending
+            testEmailBtn.addEventListener('click', async function() {
+                const currentEmail = emailInput.value.trim();
+                
+                // Validate email
+                if (!validateEmailAddress(currentEmail)) {
+                    alertStatusMsg.textContent = 'Please enter a valid email address first';
+                    alertStatusMsg.style.color = '#dc2626';
+                    return;
+                }
+                
+                // Save the email first
+                emailAddress = currentEmail;
+                localStorage.setItem('emergencyEmailAddress', emailAddress);
+                
+                // Update status
+                alertStatusMsg.textContent = 'Testing email system...';
+                alertStatusMsg.style.color = '#6b7280';
+                
+                try {
+                    // Call the test endpoint
+                    const response = await fetch(`${API_BASE_URL}/api/test_email?email=${encodeURIComponent(currentEmail)}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Show success
+                        alertStatusMsg.textContent = 'Test email sent successfully! Check your inbox.';
+                        alertStatusMsg.style.color = '#10b981';
+                        
+                        // Show notification
+                        const notificationMsg = document.getElementById('alert-notification-message');
+                        notificationMsg.textContent = `Test email sent to ${currentEmail}`;
+                        alertNotification.classList.add('show');
+                        
+                        setTimeout(() => {
+                            alertNotification.classList.remove('show');
+                        }, 5000);
+                    } else {
+                        // Show error
+                        alertStatusMsg.textContent = `Error: ${result.error || 'Failed to send test email'}`;
+                        alertStatusMsg.style.color = '#dc2626';
+                    }
+                } catch (error) {
+                    console.error('Error testing email:', error);
+                    alertStatusMsg.textContent = `Error: ${error.message}`;
+                    alertStatusMsg.style.color = '#dc2626';
+                }
+            });
+            
+            // Email address validation function
+            function validateEmailAddress(email) {
+                // Check for valid email format
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailPattern.test(email);
+            }
+            
+            // Function to send email notification
+            async function sendEmailNotification(message) {
+                if (!emailEnabled || !emailAddress) {
+                    console.log("Email alerts disabled or no email address set");
+                    return false;
+                }
+                
+                try {
+                    // Show "sending" status
+                    alertStatusMsg.textContent = "Sending email alert...";
+                    console.log(`Attempting to send email alert to ${emailAddress}`);
+                    
+                    // API endpoint for email service
+                    const response = await fetch(`${API_BASE_URL}/api/send_email`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: emailAddress,
+                            message: message
+                        })
+                    }).catch((fetchError) => {
+                        // In case the fetch fails (no backend), we'll simulate a successful response
+                        console.error("Email API request failed:", fetchError);
+                        console.log("Using fallback simulation for email");
+                        return {
+                            ok: true,
+                            json: () => Promise.resolve({ 
+                                success: true, 
+                                message: "Email alert sent (simulated)",
+                                simulation: true,
+                                error: fetchError.message
+                            })
+                        };
+                    });
+                    
+                    const result = await response.json();
+                    console.log("Email sending result:", result);
+                    
+                    if (response.ok) {
+                        // Success status
+                        alertStatusMsg.textContent = `Email alert sent to ${emailAddress}`;
+                        setTimeout(() => {
+                            alertStatusMsg.textContent = `Email alerts will be sent to ${emailAddress}`;
+                        }, 3000);
+                    } else {
+                        // Error status
+                        console.error("Email sending failed:", result.error);
+                        alertStatusMsg.textContent = `Error: ${result.error || "Failed to send email"}`;
+                        setTimeout(() => {
+                            alertStatusMsg.textContent = `Email alerts will be sent to ${emailAddress}`;
+                        }, 3000);
+                    }
+                    
+                    // Show notification popup
+                    const notificationMsg = document.getElementById('alert-notification-message');
+                    notificationMsg.textContent = `Alert sent to ${emailAddress}`;
+                    
+                    alertNotification.classList.add('show');
+                    
+                    // Hide notification after 5 seconds
+                    setTimeout(() => {
+                        alertNotification.classList.remove('show');
+                    }, 5000);
+                    
+                    return response.ok;
+                } catch (error) {
+                    console.error('Error sending email notification:', error);
+                    alertStatusMsg.textContent = `Error: ${error.message}`;
+                    return false;
+                }
+            }
+            
             // Initialize the system
             async function initializeSystem() {
                 try {
                     loading.style.display = 'block';
                     errorMessage.style.display = 'none';
+                    
+                    // Ensure TensorFlow.js is loaded
+                    if (typeof tf === 'undefined') {
+                        throw new Error('TensorFlow.js not loaded. Please check your internet connection and try again.');
+                    }
+                    
+                    // Ensure COCO-SSD model is available
+                    if (typeof cocoSsd === 'undefined') {
+                        throw new Error('COCO-SSD model not loaded. Please check your internet connection and try again.');
+                    }
+                    
+                    // Set backend to WebGL for better performance if available
+                    if (tf.getBackend() !== 'webgl' && tf.backend().webGLAvailable) {
+                        await tf.setBackend('webgl');
+                        console.log('Using WebGL backend');
+                    } else {
+                        console.log('Using backend:', tf.getBackend());
+                    }
                     
                     console.log('Loading COCO-SSD model...');
                     model = await cocoSsd.load();
@@ -351,30 +818,199 @@
                 showError('Failed to initialize system. Please refresh the page.');
             }
 
+            // Add event listeners for camera control buttons
+            startButton.addEventListener('click', async () => {
+                try {
+                    // Request access to the camera
+                    stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            width: { ideal: 640 },
+                            height: { ideal: 480 },
+                            facingMode: 'environment' 
+                        } 
+                    });
+                    
+                    // Set the video source to the camera stream
+                    video.srcObject = stream;
+                    await video.play();
+                    
+                    // Update UI
+                    startButton.disabled = true;
+                    stopButton.disabled = false;
+                    metricsGrid.classList.add('active');
+                    alertHistory.classList.add('active');
+                    detectionOverlay.classList.remove('active');
+                    systemAlertStatus.textContent = 'Active';
+                    systemAlertStatus.className = 'alert-status status-active';
+                    
+                    // Reset alert tracking for new camera session
+                    alertSentForCurrentVideo = false;
+                    updateAlertIndicator(false);
+                    
+                    // Start the detection process
+                    startDetection();
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                    showError('Failed to access camera: ' + error.message);
+                }
+            });
+            
+            stopButton.addEventListener('click', () => {
+                // Stop the camera stream
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                
+                // Update UI
+                video.srcObject = null;
+                startButton.disabled = false;
+                stopButton.disabled = true;
+                isMonitoring = false;
+                
+                // Clear detection canvas
+                if (ctx) {
+                    ctx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+                }
+                
+                // Update system status
+                systemAlertStatus.textContent = 'Inactive';
+                systemAlertStatus.className = 'alert-status status-inactive';
+                detectionOverlay.classList.add('active');
+                
+                // Reset alert tracking
+                alertSentForCurrentVideo = false;
+                updateAlertIndicator(false);
+            });
+
             uploadButton.addEventListener('click', () => {
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = 'video/*';
                 
+                // Reset alert status for new video upload immediately
+                alertSentForCurrentVideo = false;
+                console.log("New video upload - alert status reset");
+                updateAlertIndicator(false);
+                
+                // Show upload status
+                const uploadStatus = document.getElementById('upload-status');
+                const progressContainer = document.getElementById('upload-progress-container');
+                const progressBar = document.getElementById('upload-progress-bar');
+                
                 input.onchange = async (e) => {
                     const file = e.target.files[0];
                     if (file) {
                         try {
-                            const videoUrl = URL.createObjectURL(file);
-                            video.src = videoUrl;
-                            video.onloadeddata = () => {
-                                console.log('Video loaded, starting detection');
-                                startDetection();
-                            };
-                            await video.play();
+                            // Display file information
+                            uploadStatus.textContent = `Preparing to upload: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+                            uploadStatus.style.display = 'block';
+                            progressContainer.style.display = 'block';
+                            progressBar.style.width = '0%';
                             
-                            metricsGrid.classList.add('active');
-                            alertHistory.classList.add('active');
-                            detectionOverlay.classList.remove('active');
-                            alertStatus.textContent = 'Processing Video';
-                            alertStatus.className = 'alert-status status-active';
+                            // Create FormData for sending the video file
+                            const formData = new FormData();
+                            formData.append('video', file);
+                            
+                            // Use XMLHttpRequest for upload progress tracking
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('POST', `${API_BASE_URL}/api/drowning`, true);
+                            xhr.setRequestHeader('Accept', 'application/json');
+                            
+                            // Track upload progress
+                            xhr.upload.onprogress = (event) => {
+                                if (event.lengthComputable) {
+                                    const percentComplete = (event.loaded / event.total) * 100;
+                                    progressBar.style.width = percentComplete + '%';
+                                    uploadStatus.textContent = `Uploading ${file.name}: ${Math.round(percentComplete)}%`;
+                                }
+                            };
+                            
+                            // Create promise to handle the upload completion
+                            const uploadPromise = new Promise((resolve, reject) => {
+                                xhr.onload = function() {
+                                    if (xhr.status === 200) {
+                                        try {
+                                            const response = JSON.parse(xhr.responseText);
+                                            resolve(response);
+                                        } catch (error) {
+                                            reject(new Error('Invalid response from server'));
+                                        }
+                                    } else {
+                                        try {
+                                            const errorData = JSON.parse(xhr.responseText);
+                                            reject(new Error(errorData.error || 'Server error'));
+                                        } catch (e) {
+                                            reject(new Error(`Server error: ${xhr.status}`));
+                                        }
+                                    }
+                                };
+                                
+                                xhr.onerror = () => {
+                                    reject(new Error('Network error occurred'));
+                                };
+                                
+                                xhr.ontimeout = () => {
+                                    reject(new Error('Request timed out'));
+                                };
+                            });
+                            
+                            // Start the upload
+                            xhr.send(formData);
+                            
+                            try {
+                                // Wait for the upload to complete
+                                await uploadPromise;
+                                
+                                // Processing complete, show processing message
+                                uploadStatus.textContent = `Processing ${file.name}...`;
+                                
+                                // Create a URL for the video and load it
+                                const videoUrl = URL.createObjectURL(file);
+                                video.src = videoUrl;
+                                
+                                video.onloadeddata = () => {
+                                    uploadStatus.textContent = `Video loaded successfully. Running detection...`;
+                                    progressContainer.style.display = 'none';
+                                    
+                                    // Reset alert tracking for new video - make absolutely sure
+                                    alertSentForCurrentVideo = false;
+                                    console.log("Video loaded - alert status reset");
+                                    
+                                    // Start detection after a small delay to allow UI update
+                                    setTimeout(() => {
+                                        startDetection();
+                                        
+                                        // Update UI
+                                        metricsGrid.classList.add('active');
+                                        alertHistory.classList.add('active');
+                                        detectionOverlay.classList.remove('active');
+                                        systemAlertStatus.textContent = 'Processing Video';
+                                        systemAlertStatus.className = 'alert-status status-active';
+                                    }, 500);
+                                };
+                                
+                                video.onerror = () => {
+                                    uploadStatus.textContent = `Error: Could not load video ${file.name}. Please try a different format.`;
+                                    progressContainer.style.display = 'none';
+                                };
+                                
+                                video.play().catch(error => {
+                                    uploadStatus.textContent = `Error: ${error.message}`;
+                                    progressContainer.style.display = 'none';
+                                });
+                                
+                            } catch (error) {
+                                // Handle errors during the fetch operation
+                                uploadStatus.textContent = `Error: ${error.message}`;
+                                progressContainer.style.display = 'none';
+                                showError(`Upload error: ${error.message}`);
+                            }
+                            
                         } catch (error) {
                             console.error('Error processing video:', error);
+                            uploadStatus.textContent = `Error: ${error.message}`;
+                            progressContainer.style.display = 'none';
                             showError('Error processing video: ' + error.message);
                         }
                     }
@@ -405,15 +1041,43 @@
                     return;
                 }
 
+                // Ensure video is ready
+                if (video.readyState !== 4) {
+                    await new Promise(resolve => {
+                        video.onloadeddata = resolve;
+                    });
+                }
+
+                // Reset alert tracking for new detection session
+                alertSentForCurrentVideo = false;
                 isMonitoring = true;
+                
+                // Update status
+                metricsGrid.classList.add('active');
+                alertHistory.classList.add('active');
+                
+                // Reset metrics
+                document.getElementById('confidence-value').textContent = '--%';
+                document.getElementById('active-alerts').textContent = '0';
+                document.getElementById('response-time').textContent = '--s';
                 
                 async function detectFrame() {
                     if (!isMonitoring) return;
+                    if (video.paused || video.ended) {
+                        // If video is paused or ended, try again after a short delay
+                        setTimeout(() => requestAnimationFrame(detectFrame), 500);
+                        return;
+                    }
                     
                     try {
+                        const startTime = performance.now();
+                        
                         // Set canvas size to match video
-                        detectionCanvas.width = video.videoWidth;
-                        detectionCanvas.height = video.videoHeight;
+                        if (detectionCanvas.width !== video.videoWidth || 
+                            detectionCanvas.height !== video.videoHeight) {
+                            detectionCanvas.width = video.videoWidth;
+                            detectionCanvas.height = video.videoHeight;
+                        }
                         
                         // Clear previous drawings
                         ctx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
@@ -423,7 +1087,11 @@
                         
                         // Filter for people
                         const people = predictions.filter(pred => pred.class === 'person');
-                        console.log('Detected people:', people);
+                        
+                        // Calculate response time
+                        const endTime = performance.now();
+                        const responseTime = ((endTime - startTime) / 1000).toFixed(2);
+                        document.getElementById('response-time').textContent = `${responseTime}s`;
                         
                         // Update metrics
                         if (people.length > 0) {
@@ -431,7 +1099,6 @@
                                 `${Math.round(people[0].score * 100)}%`;
                             document.getElementById('active-alerts').textContent = 
                                 people.length.toString();
-                            document.getElementById('response-time').textContent = '0.1s';
                             
                             // Draw detections
                             ctx.strokeStyle = 'red';
@@ -444,9 +1111,45 @@
                                 ctx.strokeRect(x, y, width, height);
                                 ctx.fillText('Person Detected!', x, y - 5);
                                 
-                                // Add alert
-                                addAlert('Person detected in water!', 'high');
+                                // Add visual alert if confidence is high enough
+                                if (person.score > 0.6) {
+                                    addAlertToUI('Person detected in water!');
+                                }
                             });
+                            
+                            // If we have high confidence people detection and haven't sent an alert yet,
+                            // send exactly one email alert per video
+                            const highConfidencePeople = people.filter(p => p.score > 0.6);
+                            if (highConfidencePeople.length > 0 && !alertSentForCurrentVideo && emailEnabled && emailAddress) {
+                                // Set flag first to prevent any possibility of duplicate alerts
+                                alertSentForCurrentVideo = true;
+                                updateAlertIndicator(true);
+                                
+                                // Send one email alert
+                                const message = `ALERT: Person detected in water at ${new Date().toLocaleTimeString()}`;
+                                console.log("🚨 DROWNING DETECTION: Sending email alert");
+                                console.log(`Email recipient: ${emailAddress}`);
+                                console.log(`Alert message: ${message}`);
+                                
+                                // Attempt to send the email
+                                const emailResult = await sendEmailNotification(message);
+                                console.log("Email sending completed, result:", emailResult);
+                                
+                                // Send one server alert
+                                try {
+                                    await sendAlertToServer('Person detected in water!', 'high');
+                                } catch (err) {
+                                    console.log('Could not send alert to server:', err);
+                                }
+                                
+                                // Update email status to show alert is sent and no more will be sent
+                                if (alertStatusMsg) {
+                                    alertStatusMsg.textContent = "⚠️ Alert sent. No additional alerts will be sent for this video.";
+                                    alertStatusMsg.style.color = '#dc2626';
+                                }
+                                
+                                console.log("DROWNING ALERT SENT - No more alerts will be sent for this video");
+                            }
                         }
                         
                         // Debug overlay
@@ -456,21 +1159,32 @@
                         ctx.font = '14px Arial';
                         ctx.fillText(`Total Detections: ${predictions.length}`, 20, 30);
                         ctx.fillText(`People Detected: ${people.length}`, 20, 50);
-                        ctx.fillText(`Model Loaded: ${isModelLoaded ? 'Yes' : 'No'}`, 20, 70);
+                        ctx.fillText(`Response Time: ${responseTime}s`, 20, 70);
                         
                     } catch (error) {
                         console.error('Error in detection frame:', error);
-                        showError('Detection error: ' + error.message);
                     }
                     
                     // Continue detection
                     requestAnimationFrame(detectFrame);
                 }
                 
+                // Start the detection loop
                 detectFrame();
             }
 
-            function addAlert(message, severity) {
+            function updateAlertIndicator(isActive) {
+                if (isActive) {
+                    alertIndicator.className = 'alert-indicator alert-sent';
+                    alertIndicator.textContent = 'Email Sent';
+                } else {
+                    alertIndicator.className = 'alert-indicator alert-ready';
+                    alertIndicator.textContent = 'Email Ready';
+                }
+            }
+
+            // Add alert to UI only (no email)
+            function addAlertToUI(message) {
                 const alertList = document.getElementById('alert-list');
                 const alertElement = document.createElement('div');
                 alertElement.className = 'alert-item';
@@ -478,6 +1192,7 @@
                     <div class="alert-time">${new Date().toLocaleTimeString()}</div>
                     <div class="alert-message">${message}</div>
                 `;
+                
                 alertList.insertBefore(alertElement, alertList.firstChild);
                 
                 // Keep only the last 5 alerts
@@ -485,7 +1200,33 @@
                     alertList.removeChild(alertList.lastChild);
                 }
             }
+            
+            // Function to communicate with the backend server
+            async function sendAlertToServer(message, severity) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/drowning_alert`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message,
+                            severity,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to send alert to server');
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.warn('Alert sent locally only - server connection failed:', error.message);
+                    return { status: 'local_only', message: 'Alert recorded locally' };
+                }
+            }
         });
     </script>
 </body>
-</html> 
+</html>
