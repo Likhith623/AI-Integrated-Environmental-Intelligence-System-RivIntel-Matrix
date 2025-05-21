@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiverMind - Monitor & Emotion Diary</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .monitor-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .section-card {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .upload-section {
+            margin: 2rem 0;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .upload-area.dragging {
+            border-color: #007bff;
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+
+        .video-preview {
+            max-width: 100%;
+            margin: 1rem 0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .button.danger {
+            background-color: #dc3545;
+        }
+
+        .button.danger:hover {
+            background-color: #c82333;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-title {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #343a40;
+            margin: 0.5rem 0;
+        }
+
+        .metric-unit {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .emotion-indicator {
+            font-size: 1.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .emotion-indicator.happy {
+            background-color: #98FB98;
+            color: #006400;
+            border: 2px solid #006400;
+        }
+
+        .emotion-indicator.sad {
+            background-color: #B0E0E6;
+            color: #00008B;
+            border: 2px solid #00008B;
+        }
+
+        .emotion-indicator.angry {
+            background-color: #FFB6C1;
+            color: #8B0000;
+            border: 2px solid #8B0000;
+        }
+
+        .emotion-indicator.excited {
+            background-color: #FFE4B5;
+            color: #8B4513;
+            border: 2px solid #8B4513;
+        }
+
+        .emotion-indicator.calm {
+            background-color: #E6E6FA;
+            color: #4B0082;
+            border: 2px solid #4B0082;
+        }
+
+        .emotion-indicator.neutral {
+            background-color: #F5F5F5;
+            color: #696969;
+            border: 2px solid #696969;
+        }
+
+        .biological-indicators {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #e8f5e9;
+        }
+
+        .indicator-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .indicator-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 4px;
+        }
+
+        .indicator-icon {
+            margin-right: 0.5rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .indicator-good { background-color: #4caf50; }
+        .indicator-warning { background-color: #ff9800; }
+        .indicator-bad { background-color: #f44336; }
+
+        #uploadStatus {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+
+        #uploadStatus.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        #uploadStatus.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="waves"></div>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo">RiverMind</a>
+            <div class="nav-links">
+                <a href="monitor.html" class="active">Monitor</a>
+                <a href="drowning.html">Drowning Detection</a>
+                <a href="climate.html">Climate</a>
+                <a href="#" onclick="scrollToAlerts()">Alerts & Awareness</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="monitor-container">
+            <h1>River Monitor & Emotion Diary</h1>
+            
+            <div class="page-sections">
+                <!-- Real-time Monitoring Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Real-time Flow Rate Monitor</h2>
+                        <div>
+                            <button id="startRealtimeBtn" class="button">Start Real-time Monitor</button>
+                            <button id="stopRealtimeBtn" class="button danger" style="display: none;">Stop Monitor</button>
+                        </div>
+                    </div>
+                    <p>Use your camera to monitor flow rate in real-time</p>
+                    <video id="realtimeVideo" class="video-preview" autoplay playsinline style="display: none;"></video>
+                    <canvas id="videoCanvas" style="display: none;"></canvas>
+                </div>
+
+                <!-- Video Analysis Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>Video Analysis</h2>
+                    </div>
+                    <p>Upload a video to analyze the river's condition</p>
+                    <div class="upload-section">
+                        <div class="upload-area" id="uploadArea">
+                            <p>Drag and drop a video file here or click to select</p>
+                            <input type="file" id="videoInput" accept="video/*" style="display: none;">
+                        </div>
+                        <video id="videoPreview" class="video-preview" controls></video>
+                        <button id="uploadButton" class="button" style="display: none;">Analyze Video</button>
+                        <div id="uploadStatus"></div>
+                    </div>
+                </div>
+
+                <!-- River Emotion Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>River's Emotion Diary</h2>
+                        <button id="refreshButton" class="button">Refresh Entry</button>
+                    </div>
+                    
+                    <div class="emotion-indicator" id="emotionIndicator">River is feeling: Loading...</div>
+                    <div style="text-align: right; color: #6c757d; font-size: 0.9rem;" id="timestamp"></div>
+
+                    <div class="metrics-grid" id="metricsGrid">
+                        <div class="metric-card">
+                            <div class="metric-title">Temperature</div>
+                            <div class="metric-value" id="temperature">--</div>
+                            <div class="metric-unit">°C</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">pH Level</div>
+                            <div class="metric-value" id="ph">--</div>
+                            <div class="metric-unit">pH</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Flow Rate</div>
+                            <div class="metric-value" id="flow">--</div>
+                            <div class="metric-unit">m³/s</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Dissolved Oxygen</div>
+                            <div class="metric-value" id="dissolvedOxygen">--</div>
+                            <div class="metric-unit">mg/L</div>
+                        </div>
+                    </div>
+
+                    <div class="biological-indicators">
+                        <h2>Biological Assessment</h2>
+                        <div class="indicator-list" id="bioIndicators">
+                            <!-- Indicators will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 RiverMind. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8001';
+        let isMonitoring = false;
+        let mediaStream = null;
+        let previousFrame = null;
+        let animationFrame = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupUploadHandlers();
+            setupRealtimeMonitoring();
+            fetchDiaryEntry();
+            
+            // Auto-refresh diary entry every 30 seconds
+            setInterval(fetchDiaryEntry, 30000);
+        });
+
+        function setupRealtimeMonitoring() {
+            const startBtn = document.getElementById('startRealtimeBtn');
+            const stopBtn = document.getElementById('stopRealtimeBtn');
+            
+            startBtn.addEventListener('click', startRealTimeMonitor);
+            stopBtn.addEventListener('click', stopRealTimeMonitor);
+        }
+
+        function setupUploadHandlers() {
+            const uploadArea = document.getElementById('uploadArea');
+            const videoInput = document.getElementById('videoInput');
+            const videoPreview = document.getElementById('videoPreview');
+            const uploadButton = document.getElementById('uploadButton');
+            const refreshButton = document.getElementById('refreshButton');
+
+            uploadArea.addEventListener('click', () => videoInput.click());
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragging');
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragging');
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragging');
+                handleFiles(e.dataTransfer.files);
+            });
+            videoInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+            uploadButton.addEventListener('click', uploadVideo);
+            refreshButton.addEventListener('click', fetchDiaryEntry);
+        }
+
+        async function startRealTimeMonitor() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 15 }
+                    }
+                });
+                
+                const video = document.getElementById('realtimeVideo');
+                const startBtn = document.getElementById('startRealtimeBtn');
+                const stopBtn = document.getElementById('stopRealtimeBtn');
+
+                video.srcObject = mediaStream;
+                video.style.display = 'block';
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+                
+                document.getElementById('metricsGrid').style.display = 'grid';
+                isMonitoring = true;
+                
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = resolve;
+                });
+                await video.play();
+                
+                monitorFlowRate();
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                showUploadStatus('Failed to access camera. Please ensure camera permissions are granted.', 'error');
+            }
+        }
+
+        function stopRealTimeMonitor() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            
+            const video = document.getElementById('realtimeVideo');
+            const startBtn = document.getElementById('startRealtimeBtn');
+            const stopBtn = document.getElementById('stopRealtimeBtn');
+            
+            video.style.display = 'none';
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            isMonitoring = false;
+            previousFrame = null;
+        }
+
+        async function monitorFlowRate() {
+            if (!isMonitoring) return;
+
+            const video = document.getElementById('realtimeVideo');
+            const canvas = document.getElementById('videoCanvas');
+            const ctx = canvas.getContext('2d');
+
+            if (video.readyState !== video.HAVE_ENOUGH_DATA || 
+                !video.videoWidth || 
+                !video.videoHeight) {
+                animationFrame = requestAnimationFrame(monitorFlowRate);
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+
+            const currentFrame = await new Promise(resolve => {
+                canvas.toBlob(resolve, 'image/jpeg', 0.95);
+            });
+
+            if (previousFrame) {
+                const formData = new FormData();
+                formData.append('frame', currentFrame);
+                formData.append('prev_gray', previousFrame);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/flow`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        const flowValue = document.getElementById('flow');
+                        flowValue.textContent = data.flow.toFixed(2);
+                        
+                        const flowCard = flowValue.closest('.metric-card');
+                        flowCard.style.transition = 'background-color 0.3s';
+                        if (data.flow > 0.1) {
+                            flowCard.style.backgroundColor = '#e8f5e9';
+                            setTimeout(() => {
+                                flowCard.style.backgroundColor = '#f8f9fa';
+                            }, 300);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error getting flow rate:', error);
+                }
+            }
+
+            previousFrame = currentFrame;
+            setTimeout(() => {
+                animationFrame = requestAnimationFrame(monitorFlowRate);
+            }, 100);
+        }
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+
+            const file = files[0];
+            if (!file.type.startsWith('video/')) {
+                showUploadStatus('Please select a video file (mp4, avi, mov, or mkv)', 'error');
+                return;
+            }
+
+            const maxSize = 100 * 1024 * 1024; // 100MB
+            if (file.size > maxSize) {
+                showUploadStatus(`File too large. Maximum size is 100MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB`, 'error');
+                return;
+            }
+
+            const videoPreview = document.getElementById('videoPreview');
+            const uploadButton = document.getElementById('uploadButton');
+
+            videoPreview.src = URL.createObjectURL(file);
+            videoPreview.style.display = 'block';
+            uploadButton.style.display = 'inline-block';
+            
+            showUploadStatus(`Selected file: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB)`, 'info');
+        }
+
+        async function uploadVideo() {
+            const videoInput = document.getElementById('videoInput');
+            const file = videoInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('video', file);
+
+            showUploadStatus('Uploading and analyzing video...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/drowning`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (error) {
+                    console.error('JSON parsing error:', error);
+                    throw new Error('Invalid response from server');
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to analyze video');
+                }
+
+                document.getElementById('metricsGrid').style.display = 'grid';
+                document.getElementById('emotionIndicator').style.display = 'block';
+
+                updateMetricsAndEmotion(data);
+                showUploadStatus('Analysis complete!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showUploadStatus(error.message || 'Failed to analyze video. Please try again.', 'error');
+            }
+        }
+
+        async function fetchDiaryEntry() {
+            const emotionIndicator = document.getElementById('emotionIndicator');
+            const bioIndicators = document.getElementById('bioIndicators');
+            
+            emotionIndicator.textContent = 'River is feeling: Loading...';
+            emotionIndicator.className = 'emotion-indicator';
+            bioIndicators.innerHTML = '<div style="text-align: center; padding: 1rem;">Loading biological assessment...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/emotion`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch river emotion data');
+                }
+                
+                const data = await response.json();
+                updateMetricsAndEmotion(data);
+            } catch (error) {
+                console.error('Error fetching diary entry:', error);
+                handleFetchError();
+            }
+        }
+
+        function updateMetricsAndEmotion(data) {
+            // Update emotion indicator
+            const emotionIndicator = document.getElementById('emotionIndicator');
+            emotionIndicator.textContent = `River is feeling: ${data.emotion}`;
+            emotionIndicator.className = `emotion-indicator ${data.emotion}`;
+
+            // Update timestamp
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+            // Update metrics
+            document.getElementById('temperature').textContent = data.temperature.toFixed(1);
+            document.getElementById('ph').textContent = data.ph.toFixed(1);
+            document.getElementById('flow').textContent = data.flow.toFixed(2);
+            
+            // Calculate and update dissolved oxygen
+            const dissolvedOxygen = (14.6 * Math.exp(-0.02 * data.temperature)).toFixed(1);
+            document.getElementById('dissolvedOxygen').textContent = dissolvedOxygen;
+
+            // Update biological indicators
+            updateBiologicalIndicators(data);
+        }
+
+        function handleFetchError() {
+            const emotionIndicator = document.getElementById('emotionIndicator');
+            const bioIndicators = document.getElementById('bioIndicators');
+            
+            emotionIndicator.textContent = 'Unable to determine river emotion';
+            emotionIndicator.className = 'emotion-indicator neutral';
+            
+            bioIndicators.innerHTML = `
+                <div style="color: #721c24; background-color: #f8d7da; padding: 1rem; border-radius: 4px;">
+                    Failed to load biological assessment. Please try refreshing.
+                </div>
+            `;
+            
+            // Reset metrics
+            document.getElementById('temperature').textContent = '--';
+            document.getElementById('ph').textContent = '--';
+            document.getElementById('flow').textContent = '--';
+            document.getElementById('dissolvedOxygen').textContent = '--';
+        }
+
+        function updateBiologicalIndicators(data) {
+            const bioIndicators = document.getElementById('bioIndicators');
+            bioIndicators.innerHTML = '';
+
+            const indicators = [
+                {
+                    name: 'Macroinvertebrate Diversity',
+                    status: data.ph >= 6.5 && data.ph <= 8.5 ? 'good' : 'warning',
+                    description: `${data.ph >= 6.5 && data.ph <= 8.5 ? 'Optimal' : 'Suboptimal'} conditions for aquatic insects and crustaceans`
+                },
+                {
+                    name: 'Algal Growth',
+                    status: data.temperature < 30 ? 'good' : 'warning',
+                    description: `${data.temperature < 30 ? 'Controlled' : 'Elevated'} algal proliferation`
+                },
+                {
+                    name: 'Fish Population',
+                    status: getDissolvesOxygenStatus(data.temperature),
+                    description: `Oxygen levels ${getDissolvesOxygenStatus(data.temperature) === 'good' ? 'support' : 'may stress'} fish populations`
+                },
+                {
+                    name: 'Riparian Vegetation',
+                    status: data.flow > 0.5 && data.flow < 10 ? 'good' : 'warning',
+                    description: `${data.flow > 0.5 && data.flow < 10 ? 'Healthy' : 'Stressed'} bank vegetation conditions`
+                }
+            ];
+
+            indicators.forEach(indicator => {
+                const item = document.createElement('div');
+                item.className = 'indicator-item';
+                item.innerHTML = `
+                    <div class="indicator-icon indicator-${indicator.status}"></div>
+                    <div>
+                        <strong>${indicator.name}</strong>
+                        <div>${indicator.description}</div>
+                    </div>
+                `;
+                bioIndicators.appendChild(item);
+            });
+        }
+
+        function getDissolvesOxygenStatus(temperature) {
+            const do_level = 14.6 * Math.exp(-0.02 * temperature);
+            if (do_level >= 7) return 'good';
+            if (do_level >= 5) return 'warning';
+            return 'bad';
+        }
+
+        function showUploadStatus(message, type) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = type;
+            statusDiv.style.display = 'block';
+
+            if (type === 'info') {
+                statusDiv.style.backgroundColor = '#cce5ff';
+                statusDiv.style.color = '#004085';
+            }
+        }
+    </script>
+</body>
+</html> 

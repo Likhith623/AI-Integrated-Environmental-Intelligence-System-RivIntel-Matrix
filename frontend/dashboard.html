@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiverMind - Live Dashboard</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .status-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .emotion-indicator {
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .emotion-indicator.angry {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .emotion-indicator.sad {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .emotion-indicator.happy {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .parameter-card {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .parameter-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .parameter-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .gauge-container {
+            width: 100%;
+            height: 150px;
+            margin: 1rem 0;
+        }
+        
+        .suggestions-panel {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .suggestion-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        
+        .suggestion-item.high {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .suggestion-item.medium {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .suggestion-item.low {
+            border-left: 4px solid #28a745;
+        }
+        
+        .refresh-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        .refresh-button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .last-updated {
+            color: #666;
+            font-size: 0.9rem;
+            text-align: right;
+            margin-top: 1rem;
+        }
+        
+        .monitor-button {
+            background-color: #dc3545;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: block;
+            width: 80%;
+            max-width: 400px;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        
+        .monitor-button:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .monitor-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .video-container {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        #video-feed {
+            width: 100%;
+            border-radius: 8px;
+        }
+        
+        .video-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+        
+        .control-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .control-button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .control-button.record {
+            background-color: #dc3545;
+        }
+        
+        .control-button.record:hover {
+            background-color: #c82333;
+        }
+        
+        #file-input {
+            display: none;
+        }
+        
+        .upload-label {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .upload-label:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gauge.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">RiverMind</div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="monitor.html">Monitor</a></li>
+                <li><a href="emotion_diary.html">River's Diary</a></li>
+                <li><a href="suggestions.html">Suggestions</a></li>
+                <li><a href="climate.html">Climate</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="dashboard-container">
+            <h1>Live River Monitoring Dashboard</h1>
+            
+            <div class="video-section">
+                <div class="video-container">
+                    <video id="video-feed" autoplay playsinline></video>
+                    <div class="video-controls">
+                        <button class="control-button" id="start-camera">Start Camera</button>
+                        <button class="control-button record" id="start-recording">Start Recording</button>
+                        <button class="control-button" id="stop-recording" disabled>Stop Recording</button>
+                        <label class="upload-label">
+                            Upload Video
+                            <input type="file" id="file-input" accept="video/*">
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="monitor-button" onclick="window.location.href='monitor.html'">
+                Start River Monitoring
+            </button>
+            
+            <button class="refresh-button" onclick="updateDashboard()">Refresh Data</button>
+            <div class="last-updated" id="last-updated"></div>
+            
+            <div class="status-card">
+                <div class="emotion-indicator" id="emotion-indicator">
+                    Loading river status...
+                </div>
+                <div id="river-status"></div>
+            </div>
+            
+            <div class="parameter-grid">
+                <div class="parameter-card">
+                    <div class="parameter-label">Temperature</div>
+                    <div class="parameter-value" id="temperature">--°C</div>
+                    <div class="gauge-container" id="temperature-gauge"></div>
+                </div>
+                
+                <div class="parameter-card">
+                    <div class="parameter-label">pH Level</div>
+                    <div class="parameter-value" id="ph">--</div>
+                    <div class="gauge-container" id="ph-gauge"></div>
+                </div>
+                
+                <div class="parameter-card">
+                    <div class="parameter-label">Flow Rate</div>
+                    <div class="parameter-value" id="flow">-- m³/s</div>
+                    <div class="gauge-container" id="flow-gauge"></div>
+                </div>
+                
+                <div class="parameter-card">
+                    <div class="parameter-label">Pollution Level</div>
+                    <div class="parameter-value" id="pollution">--</div>
+                    <div class="gauge-container" id="pollution-gauge"></div>
+                </div>
+                
+                <div class="parameter-card">
+                    <div class="parameter-label">Water Quality</div>
+                    <div class="parameter-value" id="water-quality">--</div>
+                    <div class="gauge-container" id="water-quality-gauge"></div>
+                </div>
+                
+                <div class="parameter-card">
+                    <div class="parameter-label">Debris Level</div>
+                    <div class="parameter-value" id="debris">--</div>
+                    <div class="gauge-container" id="debris-gauge"></div>
+                </div>
+            </div>
+            
+            <div class="suggestions-panel">
+                <h2>AI Suggestions</h2>
+                <div id="suggestions-list"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 RiverMind. All rights reserved.</p>
+    </footer>
+
+    <script src="assets/js/script.js"></script>
+    <script>
+        // Initialize gauges
+        const gauges = {
+            temperature: new Gauge(document.getElementById('temperature-gauge')),
+            ph: new Gauge(document.getElementById('ph-gauge')),
+            flow: new Gauge(document.getElementById('flow-gauge')),
+            pollution: new Gauge(document.getElementById('pollution-gauge')),
+            waterQuality: new Gauge(document.getElementById('water-quality-gauge')),
+            debris: new Gauge(document.getElementById('debris-gauge'))
+        };
+        
+        // Configure gauges
+        Object.values(gauges).forEach(gauge => {
+            gauge.setOptions({
+                angle: 0,
+                lineWidth: 0.44,
+                radiusScale: 1,
+                pointer: {
+                    length: 0.6,
+                    strokeWidth: 0.035,
+                    color: '#000000'
+                },
+                limitMax: false,
+                limitMin: false,
+                colorStart: '#6FADCF',
+                colorStop: '#8FC0DA',
+                strokeColor: '#E0E0E0',
+                generateGradient: true,
+                highDpiSupport: true
+            });
+        });
+        
+        // Set gauge ranges
+        gauges.temperature.set(0);
+        gauges.temperature.setMinValue(0);
+        gauges.temperature.setMaxValue(40);
+        
+        gauges.ph.set(7);
+        gauges.ph.setMinValue(0);
+        gauges.ph.setMaxValue(14);
+        
+        gauges.flow.set(0);
+        gauges.flow.setMinValue(0);
+        gauges.flow.setMaxValue(100);
+        
+        gauges.pollution.set(0);
+        gauges.pollution.setMinValue(0);
+        gauges.pollution.setMaxValue(10);
+        
+        gauges.waterQuality.set(0);
+        gauges.waterQuality.setMinValue(0);
+        gauges.waterQuality.setMaxValue(1);
+        
+        gauges.debris.set(0);
+        gauges.debris.setMinValue(0);
+        gauges.debris.setMaxValue(1);
+        
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
+        
+        // Camera handling
+        document.getElementById('start-camera').addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                document.getElementById('video-feed').srcObject = stream;
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    recordedChunks = [];
+                    analyzeVideo(blob);
+                };
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Error accessing camera: ' + error.message);
+            }
+        });
+        
+        // Recording controls
+        document.getElementById('start-recording').addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'inactive') {
+                mediaRecorder.start();
+                isRecording = true;
+                document.getElementById('start-recording').disabled = true;
+                document.getElementById('stop-recording').disabled = false;
+            }
+        });
+        
+        document.getElementById('stop-recording').addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                isRecording = false;
+                document.getElementById('start-recording').disabled = false;
+                document.getElementById('stop-recording').disabled = true;
+            }
+        });
+        
+        // File upload handling
+        document.getElementById('file-input').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                analyzeVideo(file);
+            }
+        });
+        
+        async function analyzeVideo(videoData) {
+            try {
+                const formData = new FormData();
+                formData.append('video', videoData);
+                
+                const response = await fetch(`${API_BASE_URL}/drowning`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to analyze video');
+                }
+                
+                const result = await response.json();
+                if (result.environmental_data) {
+                    updateUI({
+                        emotion: result.emotion,
+                        data: result.environmental_data,
+                        suggestions: result.suggestions || []
+                    });
+                }
+            } catch (error) {
+                console.error('Error analyzing video:', error);
+                alert('Error analyzing video: ' + error.message);
+            }
+        }
+        
+        async function updateDashboard() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/river_diary`);
+                if (!response.ok) {
+                    throw new Error('Failed to load river data');
+                }
+                
+                const data = await response.json();
+                updateUI(data);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating dashboard: ' + error.message);
+            }
+        }
+        
+        function updateUI(data) {
+            // Update emotion indicator
+            const emotionIndicator = document.getElementById('emotion-indicator');
+            emotionIndicator.textContent = `River is feeling ${data.emotion}`;
+            emotionIndicator.className = `emotion-indicator ${data.emotion}`;
+            
+            // Update parameters
+            document.getElementById('temperature').textContent = `${data.data.temperature.toFixed(1)}°C`;
+            document.getElementById('ph').textContent = data.data.ph.toFixed(1);
+            document.getElementById('flow').textContent = `${data.data.flow.toFixed(1)} m³/s`;
+            document.getElementById('pollution').textContent = data.data.pollution_level.toFixed(1);
+            document.getElementById('water-quality').textContent = data.data.water_quality.toFixed(2);
+            document.getElementById('debris').textContent = data.data.debris_level.toFixed(2);
+            
+            // Update gauges
+            gauges.temperature.set(data.data.temperature);
+            gauges.ph.set(data.data.ph);
+            gauges.flow.set(data.data.flow);
+            gauges.pollution.set(data.data.pollution_level);
+            gauges.waterQuality.set(data.data.water_quality);
+            gauges.debris.set(data.data.debris_level);
+            
+            // Update suggestions
+            const suggestionsList = document.getElementById('suggestions-list');
+            suggestionsList.innerHTML = '';
+            data.suggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = `suggestion-item ${suggestion.priority}`;
+                div.innerHTML = `
+                    <div class="suggestion-title">${suggestion.title}</div>
+                    <div class="suggestion-content">${suggestion.content}</div>
+                `;
+                suggestionsList.appendChild(div);
+            });
+            
+            // Update last updated time
+            document.getElementById('last-updated').textContent = 
+                `Last updated: ${new Date().toLocaleTimeString()}`;
+        }
+        
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
+            // Update every 30 seconds
+            setInterval(updateDashboard, 30000);
+        });
+    </script>
+</body>
+</html> 
