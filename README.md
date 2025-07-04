@@ -115,7 +115,12 @@ rivermind/
 ├── requirements.txt
 └── README.md
 ```
+## 👨‍💻 Author
 
+**Likhith Vasireddy**
+- GitHub: [@Likhith623](https://github.com/Likhith623)
+
+  
 🤝 Collaborate With Us
 
 
