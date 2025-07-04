@@ -120,8 +120,10 @@ rivermind/
 **Likhith Vasireddy**
 - GitHub: [@Likhith623](https://github.com/Likhith623)
 
+
+
   
-🤝 Collaborate With Us
+🤝 Collaborate With Me!!
 
 
 Want to add multilingual support, voice narration, or integrate real sensors like Arduino + pH/flow monitors? Contributions are welcome! Let’s build the future of intelligent ecosystems.
