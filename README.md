@@ -1,4 +1,4 @@
-# 🌊 RiverMind: The Emotional AI Diary of a River (River Intel Matrix)
+# 🌊 River Intel Matrix
 
 **RiverMind** is a revolutionary AI-powered environmental monitoring system that personifies a river’s condition in real time—giving it emotions, voice, and data intelligence. This project fuses environmental science with emotional AI, computer vision, and climate awareness to bring a **living, breathing emotional diary** of rivers to life.
 
